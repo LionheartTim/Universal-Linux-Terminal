@@ -1,0 +1,13 @@
+Universal Linux Terminal v1.0.0 — description wrapping adjustment
+
+Python unittest discovery on the project source:
+  Ran 244 tests
+  Passed: 239
+  Skipped: 5 (GTK/VTE graphical tests unavailable in this environment)
+  Failures: 0
+
+New regression coverage: multi-line lsb-release descriptions, help section
+boundaries, bounded long descriptions, scrolling GTK text-view code path.
+
+Note: The Flatpak was not compiled here; rebuild and visually test the updated
+help pane on Bazzite. Host Bash/PTY and Flatpak permissions are unchanged.

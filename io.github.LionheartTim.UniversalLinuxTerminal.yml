@@ -1,0 +1,99 @@
+# Universal Linux Terminal v1.0.0 — local/GitHub release bundle.
+# GTK/PyGObject/Python come from org.gnome.Platform.  VTE is compiled and
+# packaged inside this app so no host distro package is needed.
+# This is a HOST terminal: Flatpak HostCommand permission is intentional.
+id: io.github.LionheartTim.UniversalLinuxTerminal
+runtime: org.gnome.Platform
+runtime-version: '50'
+sdk: org.gnome.Sdk
+command: universal-linux-terminal
+finish-args:
+  - --socket=wayland
+  - --socket=fallback-x11
+  - --share=ipc
+  - --filesystem=host
+  - --talk-name=org.freedesktop.Flatpak
+modules:
+  # These are VTE 0.82.x dependencies. Build them explicitly in /app rather
+  # than asking Meson to download wraps (blocked in flatpak-builder).
+  - name: simdutf
+    buildsystem: cmake-ninja
+    config-opts:
+      - -DBUILD_SHARED_LIBS=ON
+      - -DSIMDUTF_TESTS=OFF
+      - -DSIMDUTF_BENCHMARKS=OFF
+      - -DSIMDUTF_TOOLS=OFF
+      - -DCMAKE_INSTALL_LIBDIR=lib
+    sources:
+      - type: git
+        url: https://github.com/simdutf/simdutf.git
+        tag: v8.0.0
+
+  - name: fmt
+    buildsystem: cmake-ninja
+    config-opts:
+      - -DBUILD_SHARED_LIBS=ON
+      - -DFMT_TEST=OFF
+      - -DFMT_DOC=OFF
+      - -DCMAKE_INSTALL_LIBDIR=lib
+    sources:
+      - type: git
+        url: https://github.com/fmtlib/fmt.git
+        tag: '12.1.0'
+
+  - name: fast_float
+    buildsystem: simple
+    build-commands:
+      - install -d /app/include /app/lib/pkgconfig
+      - cp -a include/fast_float /app/include/
+      - install -m644 fast_float.pc /app/lib/pkgconfig/fast_float.pc
+    sources:
+      - type: git
+        url: https://github.com/fastfloat/fast_float.git
+        tag: v8.2.3
+      - type: file
+        path: flatpak/fast_float.pc
+
+  - name: vte
+    # The GNOME SDK must provide gnutls headers and library. With GnuTLS
+    # enabled, VTE does not warn about unencrypted disk-backed scrollback.
+    buildsystem: meson
+    build-options:
+      cxxflags: -O2
+    config-opts:
+      - -Dgtk3=true
+      - -Dgtk4=false
+      - -Ddocs=false
+      - -Dvapi=false
+      - -Dgnutls=true
+      - -Dgir=true
+      - --wrap-mode=nofallback
+    sources:
+      - type: git
+        url: https://gitlab.gnome.org/GNOME/vte.git
+        tag: '0.82.3'
+  # Host-owned PTY: the interactive shell uses Flatpak HostCommand to run
+  # util-linux script *on the host*. Bundling host-spawn here would allocate
+  # its PTY inside Flatpak, where `tty` on the host cannot find its device.
+  # Noninteractive host commands continue to use flatpak-spawn --host.
+
+  - name: universal-linux-terminal
+    buildsystem: simple
+    build-commands:
+      - install -d /app/share/universal-linux-terminal
+      - install -m644 *.py /app/share/universal-linux-terminal/
+      - install -Dm755 flatpak/ult-launch /app/bin/universal-linux-terminal
+      - install -Dm644 flatpak/io.github.LionheartTim.UniversalLinuxTerminal.desktop /app/share/applications/io.github.LionheartTim.UniversalLinuxTerminal.desktop
+      - install -Dm644 flatpak/icons/16x16/io.github.LionheartTim.UniversalLinuxTerminal.png /app/share/icons/hicolor/16x16/apps/io.github.LionheartTim.UniversalLinuxTerminal.png
+      - install -Dm644 flatpak/icons/24x24/io.github.LionheartTim.UniversalLinuxTerminal.png /app/share/icons/hicolor/24x24/apps/io.github.LionheartTim.UniversalLinuxTerminal.png
+      - install -Dm644 flatpak/icons/32x32/io.github.LionheartTim.UniversalLinuxTerminal.png /app/share/icons/hicolor/32x32/apps/io.github.LionheartTim.UniversalLinuxTerminal.png
+      - install -Dm644 flatpak/icons/48x48/io.github.LionheartTim.UniversalLinuxTerminal.png /app/share/icons/hicolor/48x48/apps/io.github.LionheartTim.UniversalLinuxTerminal.png
+      - install -Dm644 flatpak/icons/64x64/io.github.LionheartTim.UniversalLinuxTerminal.png /app/share/icons/hicolor/64x64/apps/io.github.LionheartTim.UniversalLinuxTerminal.png
+      - install -Dm644 flatpak/icons/128x128/io.github.LionheartTim.UniversalLinuxTerminal.png /app/share/icons/hicolor/128x128/apps/io.github.LionheartTim.UniversalLinuxTerminal.png
+      - install -Dm644 flatpak/icons/256x256/io.github.LionheartTim.UniversalLinuxTerminal.png /app/share/icons/hicolor/256x256/apps/io.github.LionheartTim.UniversalLinuxTerminal.png
+      - install -Dm644 flatpak/icons/512x512/io.github.LionheartTim.UniversalLinuxTerminal.png /app/share/icons/hicolor/512x512/apps/io.github.LionheartTim.UniversalLinuxTerminal.png
+      - install -Dm644 flatpak/icons/256x256/io.github.LionheartTim.UniversalLinuxTerminal.png /app/share/universal-linux-terminal/icon.png
+      - install -Dm644 flatpak/io.github.LionheartTim.UniversalLinuxTerminal.metainfo.xml /app/share/metainfo/io.github.LionheartTim.UniversalLinuxTerminal.metainfo.xml
+    sources:
+      - type: dir
+        path: .
