@@ -1,6 +1,6 @@
 # Universal Linux Terminal — v1.0.0
 
-**Version 1.0.0** · Linux · GTK 3 / VTE 2.91 · Flatpak · MIT License
+**Version 1.0.0** · Linux · GTK 3 / VTE 2.91 · Flatpak · GNU GPL v3.0
 
 Universal Linux Terminal is a real, interactive Linux terminal with a friendly command browser and a context-aware command composer. It helps you discover available commands, understand their options, and prepare commands before choosing to run them yourself.
 
@@ -155,6 +155,6 @@ The source launcher checks prerequisites and never silently installs dependencie
 
 ## License and acknowledgments
 
-Universal Linux Terminal's application source is offered under the **MIT License**; see [LICENSE](LICENSE). Its AppStream metadata is licensed **CC0-1.0**. The GNOME runtime, VTE, simdutf, fmt and fast_float have their own third-party licenses and remain subject to their original terms; see [THIRD-PARTY-NOTICES.md](THIRD-PARTY-NOTICES.md) and the upstream components.
+Universal Linux Terminal's application source is licensed under the **GNU General Public License version 3 (GPL-3.0-only)**. Copyright © 2026 LionheartTim. You are free to use, study, modify, and redistribute it under the terms of the GPL v3; see the complete [LICENSE](LICENSE). The license comes without any warranty. Its AppStream metadata is licensed **CC0-1.0**. The GNOME runtime, VTE, simdutf, fmt and fast_float have their own third-party licenses and remain subject to their original terms; see [THIRD-PARTY-NOTICES.md](THIRD-PARTY-NOTICES.md) and the upstream components.
 
 Project author: [LionheartTim](https://github.com/LionheartTim).
