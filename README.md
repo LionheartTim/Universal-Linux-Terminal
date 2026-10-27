@@ -1,3 +1,60 @@
+# Universal Linux Terminal — v1.0.1
+
+**Release date:** October 27, 2026  
+**Release type:** Bug Fix & Stability Update  
+**License:** GNU General Public License v3.0
+
+Version 1.0.1 focuses on improving terminal reliability, command interruption, and everyday usability. This update fixes issues discovered after the initial v1.0.0 release while preserving the existing features and cross-distribution design.
+
+## 🐛 Bug Fixes
+
+### Multi-line Paste
+- Fixed an issue where pasting multiple commands could result in only the first command being processed.
+- Implemented native VTE clipboard handling with Bash bracketed-paste support.
+- Multi-line commands are now inserted together instead of being executed prematurely.
+- Users can review pasted commands before pressing Enter to execute them.
+
+### Command Interruption (Ctrl+C)
+- Fixed an issue where interrupting a running command could display repeated `^C` characters without stopping the process.
+- Improved signal handling through the Flatpak host-side PTY bridge.
+- Foreground processes can now be interrupted reliably without closing the terminal.
+- The interactive Bash prompt is restored after successful interruption.
+
+### Stop Button
+- Fixed the Stop button behavior.
+- Stop now closes Universal Linux Terminal after user confirmation.
+- Added a separate **Interrupt command (Ctrl+C)** button for terminating running commands without exiting the application.
+
+## ✨ Usability Improvements
+
+### Paste Confirmation Preferences
+- Added a **"Don't show this warning again"** checkbox to the paste confirmation dialog.
+- User preferences are saved and retained across application restarts.
+- Paste confirmation can be re-enabled through the terminal's right-click context menu.
+- The confirmation remains enabled by default for safer command handling.
+
+## ✅ Testing & Validation
+
+- **256 automated tests passed.**
+- 5 graphical integration tests skipped in the automated test environment.
+- Updated functionality verified on Bazzite with KDE Plasma.
+- The previous v1.0.0 release was also tested on Xubuntu 26.10 (Xfce) and openSUSE Leap 16.0 (GNOME). These platforms have not yet been separately revalidated for v1.0.1.
+
+## 📦 Compatibility
+
+- Maintains the existing GTK 3 / VTE terminal architecture.
+- Preserves the real interactive Linux host shell.
+- Maintains distribution-aware command discovery, documentation, and command composition.
+- Retains Flatpak packaging and host integration.
+
+## 📝 Final Notes
+
+Universal Linux Terminal v1.0.1 is a focused maintenance release. It introduces no major new features, prioritizing reliability, usability, and predictable terminal behavior.
+
+**Developed by [LionheartTim](https://github.com/LionheartTim).**
+
+**Project:** [Universal Linux Terminal](https://github.com/LionheartTim/Universal-Linux-Terminal)
+
 # Universal Linux Terminal — v1.0.0
 
 **Version 1.0.0** · Linux · GTK 3 / VTE 2.91 · Flatpak · GNU GPL v3.0
