@@ -11,6 +11,10 @@ No helper is installed on the host; this code is transported through Python
 Protocol from relay to host on stdin (binary, separate from the PTY stream):
  one-byte kind, 4-byte big-endian length, then payload; I=input, W=winsize.
 Output from host to relay remains raw PTY bytes on stdout.
+The 'S' frame means SIGINT for the current host PTY foreground process group.
+A SIGUSR1 sent to the local relay asks it to issue this control frame; this
+works even if the foreground program has disabled the tty ISIG flag.
+
 """
 import errno
 import fcntl
@@ -90,6 +94,27 @@ def _resolve_host_shell(requested):
     raise RuntimeError('No usable login shell found on Linux host')
 
 
+def _interrupt_host_foreground(master, shell_pid):
+    """Signal only the process group currently controlling this host PTY.
+
+    Flatpak VTE's control-C byte may be displayed as ^C yet fail to interrupt
+    programs with ISIG disabled. Use the host PTY's actual foreground pgrp,
+    not the launcher/Flatpak proxy and never an arbitrary process PID.
+    """
+    try:
+        fg_pgrp = os.tcgetpgrp(master)
+        if fg_pgrp <= 1:
+            return False
+        # Confirm the group is in the session started by our pty.fork child;
+        # this prevents a stale/misdirected signal from hitting another job.
+        if os.getsid(fg_pgrp) != os.getsid(shell_pid):
+            return False
+        os.killpg(fg_pgrp, signal.SIGINT)
+        return True
+    except (OSError, ProcessLookupError):
+        return False
+
+
 def _host_child(shell):
     """Host code.  Parent mediates between pipes and a real controlling PTY."""
     shell = _resolve_host_shell(shell)
@@ -134,6 +159,8 @@ def _host_child(shell):
                                     raise
                         elif kind == b'W' and count == WINSIZE.size:
                             fcntl.ioctl(master, termios.TIOCSWINSZ, payload)
+                        elif kind == b'S' and count == 0:
+                            _interrupt_host_foreground(master, pid)
                         else:
                             raise ValueError('Invalid PTY frame type')
                 else:
@@ -182,6 +209,13 @@ def _relay(host_python, shell, cwd, local_test=False):
     old_term = termios.tcgetattr(stdin_fd) if os.isatty(stdin_fd) else None
     if old_term is not None:
         tty.setraw(stdin_fd)
+    # GUI sends SIGUSR1 to this *local relay*; never signal the Flatpak GUI
+    # process or forward the signal blindly to the host PID namespace.
+    interrupt_pending = False
+    def queue_interrupt(signum, frame):
+        nonlocal interrupt_pending
+        interrupt_pending = True
+    previous_interrupt_handler = signal.signal(signal.SIGUSR1, queue_interrupt)
     try:
         selector = selectors.DefaultSelector()
         selector.register(stdin_fd, selectors.EVENT_READ, 'user')
@@ -190,6 +224,9 @@ def _relay(host_python, shell, cwd, local_test=False):
         last_size = _size(stdin_fd)
         _send_size(proc.stdin.fileno(), last_size)
         while True:
+            if interrupt_pending:
+                interrupt_pending = False
+                _write_all(proc.stdin.fileno(), _frame(b'S', b''))
             new_size = _size(stdin_fd)
             if new_size != last_size:
                 last_size = new_size
@@ -219,6 +256,7 @@ def _relay(host_python, shell, cwd, local_test=False):
                 break
         return proc.wait()
     finally:
+        signal.signal(signal.SIGUSR1, previous_interrupt_handler)
         if old_term is not None:
             termios.tcsetattr(stdin_fd, termios.TCSANOW, old_term)
         if proc.poll() is None:

@@ -283,6 +283,8 @@ EN = {
     'Uitvoer opslaan': 'Save output',
     'Terminal opnieuw openen': 'Reopen terminal',
     'Reset Terminal': 'Reset Terminal', 'Stop': 'Stop',
+    'Onderbreek opdracht (Ctrl+C)': 'Interrupt command (Ctrl+C)',
+    'Sluit de applicatie na bevestiging.': 'Close the application after confirmation.',
     'Extra': 'Extra',
     'HDD/SSD-map kiezen…': 'Choose HDD/SSD folder…',
     'Browse installed commands…': 'Browse installed commands…',
@@ -297,10 +299,17 @@ EN = {
     'proces kon niet starten': 'process failed to start',
     'Deze tekst gaat naar de actieve terminal. Nieuwe regels kunnen opdrachten uitvoeren.':
         'This text will be pasted into the active terminal. New lines may execute commands.',
+    'Controleer de tekst. Bij Bash met bracketed paste worden alle regels eerst ingevoegd; druk daarna zelf op Enter. Zonder die ondersteuning kunnen nieuwe regels direct opdrachten uitvoeren.':
+        'Review this text. With Bash bracketed paste, all lines are inserted first; press Enter yourself to run them. Without that support, pasted newlines may execute commands immediately.',
     'Terminaluitvoer opslaan (kan persoonlijke gegevens bevatten)':
         'Save terminal output (may contain private information)',
     'Kopiëren (Ctrl+Shift+C)': 'Copy (Ctrl+Shift+C)',
     'Plakken (Ctrl+Shift+V)': 'Paste (Ctrl+Shift+V)',
+    'Deze plakwaarschuwing niet meer tonen': "Don't show this warning again",
+    'Je kunt de plakwaarschuwing opnieuw inschakelen via het rechtermuisknopmenu van de terminal.':
+        'You can re-enable this warning from the terminal right-click menu.',
+    'Plakwaarschuwing tonen': 'Show paste confirmation',
+    'Kon de plakvoorkeur niet opslaan: ': 'Could not save paste preference: ',
     'Alles selecteren': 'Select all',
 }
 

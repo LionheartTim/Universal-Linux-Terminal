@@ -1,4 +1,4 @@
-# Universal Linux Terminal v1.0.0 — local/GitHub release bundle.
+# Universal Linux Terminal v1.0.1 — local/GitHub release bundle.
 # GTK/PyGObject/Python come from org.gnome.Platform.  VTE is compiled and
 # packaged inside this app so no host distro package is needed.
 # This is a HOST terminal: Flatpak HostCommand permission is intentional.

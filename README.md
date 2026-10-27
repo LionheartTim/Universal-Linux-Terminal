@@ -1,63 +1,6 @@
-# Universal Linux Terminal — v1.0.1
+# Universal Linux Terminal — v1.0.1 (test candidate)
 
-**Release date:** October 27, 2026  
-**Release type:** Bug Fix & Stability Update  
-**License:** GNU General Public License v3.0
-
-Version 1.0.1 focuses on improving terminal reliability, command interruption, and everyday usability. This update fixes issues discovered after the initial v1.0.0 release while preserving the existing features and cross-distribution design.
-
-## 🐛 Bug Fixes
-
-### Multi-line Paste
-- Fixed an issue where pasting multiple commands could result in only the first command being processed.
-- Implemented native VTE clipboard handling with Bash bracketed-paste support.
-- Multi-line commands are now inserted together instead of being executed prematurely.
-- Users can review pasted commands before pressing Enter to execute them.
-
-### Command Interruption (Ctrl+C)
-- Fixed an issue where interrupting a running command could display repeated `^C` characters without stopping the process.
-- Improved signal handling through the Flatpak host-side PTY bridge.
-- Foreground processes can now be interrupted reliably without closing the terminal.
-- The interactive Bash prompt is restored after successful interruption.
-
-### Stop Button
-- Fixed the Stop button behavior.
-- Stop now closes Universal Linux Terminal after user confirmation.
-- Added a separate **Interrupt command (Ctrl+C)** button for terminating running commands without exiting the application.
-
-## ✨ Usability Improvements
-
-### Paste Confirmation Preferences
-- Added a **"Don't show this warning again"** checkbox to the paste confirmation dialog.
-- User preferences are saved and retained across application restarts.
-- Paste confirmation can be re-enabled through the terminal's right-click context menu.
-- The confirmation remains enabled by default for safer command handling.
-
-## ✅ Testing & Validation
-
-- **256 automated tests passed.**
-- 5 graphical integration tests skipped in the automated test environment.
-- Updated functionality verified on Bazzite with KDE Plasma.
-- The previous v1.0.0 release was also tested on Xubuntu 26.10 (Xfce) and openSUSE Leap 16.0 (GNOME). These platforms have not yet been separately revalidated for v1.0.1.
-
-## 📦 Compatibility
-
-- Maintains the existing GTK 3 / VTE terminal architecture.
-- Preserves the real interactive Linux host shell.
-- Maintains distribution-aware command discovery, documentation, and command composition.
-- Retains Flatpak packaging and host integration.
-
-## 📝 Final Notes
-
-Universal Linux Terminal v1.0.1 is a focused maintenance release. It introduces no major new features, prioritizing reliability, usability, and predictable terminal behavior.
-
-**Developed by [LionheartTim](https://github.com/LionheartTim).**
-
-**Project:** [Universal Linux Terminal](https://github.com/LionheartTim/Universal-Linux-Terminal)
-
-# Universal Linux Terminal — v1.0.0
-
-**Version 1.0.0** · Linux · GTK 3 / VTE 2.91 · Flatpak · GNU GPL v3.0
+**Version 1.0.1 (testing candidate)** · Linux · GTK 3 / VTE 2.91 · Flatpak · GNU GPL v3.0
 
 Universal Linux Terminal is a real, interactive Linux terminal with a friendly command browser and a context-aware command composer. It helps you discover available commands, understand their options, and prepare commands before choosing to run them yourself.
 
@@ -107,11 +50,11 @@ flatpak remote-add --user --if-not-exists flathub https://dl.flathub.org/repo/fl
 
 ### 2. Install the downloaded `.flatpak` file
 
-Download **`Universal-Linux-Terminal-v1.0.0-x86_64.flatpak`** from the project's GitHub Release once published. Open a terminal in the directory containing the file. For example, if you put it in Downloads:
+When v1.0.1 has been published, download **`Universal-Linux-Terminal-v1.0.1-x86_64.flatpak`** from its GitHub Release. Until then this ZIP is a **local test candidate**, not a published release. Open a terminal in the directory containing the file. For example, if you put it in Downloads:
 
 ```bash
 cd ~/Downloads
-flatpak install --user ./Universal-Linux-Terminal-v1.0.0-x86_64.flatpak
+flatpak install --user ./Universal-Linux-Terminal-v1.0.1-x86_64.flatpak
 ```
 
 If the file is on your Desktop, use that directory instead. The `.flatpak` file does **not** have to be in Downloads. Accept any required GNOME runtime installation when prompted.
@@ -154,6 +97,14 @@ flatpak install --user flathub io.github.LionheartTim.UniversalLinuxTerminal
 4. Choose **Insert into terminal**, review the text at the shell prompt, and press **Enter** yourself to run it.
 5. If the application cannot determine that the shell prompt is empty, it may ask for confirmation before inserting text. This is a safety check; do not insert during a running command.
 
+### Pasting multiple lines and stopping
+
+Use **Paste…** (or **Ctrl+Shift+V**) to paste from the clipboard. By default, the application asks for confirmation first. Check **Don't show this warning again** and click **Yes** to remember your choice across app restarts. To re-enable the warning, right-click inside the terminal and enable **Show paste confirmation**. In Bash with *bracketed paste* enabled (the usual default), the entire multi-line block is inserted into the command line **without executing it immediately**. Review it and press **Enter** yourself to execute all its lines. An ordinary **Shift+Enter** is not needed. In shells or programs without bracketed-paste support, pasted line breaks **may still execute commands immediately**. Only paste text you trust, and do not paste while another program is accepting input.
+
+- **Interrupt command (Ctrl+C):** interrupts the foreground command but keeps the terminal window open. It may display `^C`; that is normal terminal feedback.
+- **Stop:** closes Universal Linux Terminal after a confirmation dialog, including the active terminal session. You can also close the window using its title-bar close button.
+
+
 Quick terminal check:
 
 ```bash
@@ -185,7 +136,7 @@ bash flatpak/build-flatpak.sh
 The script builds and exports:
 
 ```text
-Universal-Linux-Terminal-v1.0.0-x86_64.flatpak
+Universal-Linux-Terminal-v1.0.1-x86_64.flatpak
 ```
 
 The Flatpak manifest is `io.github.LionheartTim.UniversalLinuxTerminal.yml` and uses **GNOME Platform / SDK 50**, bundling GTK3-compatible VTE and its build dependencies. No distribution-specific VTE package is needed to install the Flatpak bundle. Building requires the GNOME SDK, source downloads, and `flatpak-builder`.

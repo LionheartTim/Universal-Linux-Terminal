@@ -1,4 +1,4 @@
-# Flatpak packaging — Universal Linux Terminal v1.0.0
+# Flatpak packaging — Universal Linux Terminal v1.0.1 test candidate
 
 ## What is included
 
@@ -37,13 +37,13 @@ configured. The GNOME SDK/runtime branch used here is `50`. You may use
 flatpak remote-add --user --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo
 flatpak install --user flathub org.gnome.Sdk//50 org.gnome.Platform//50
 flatpak-builder --force-clean --repo=repo build-dir io.github.LionheartTim.UniversalLinuxTerminal.yml
-flatpak build-bundle repo Universal-Linux-Terminal-v1.0.0-x86_64.flatpak io.github.LionheartTim.UniversalLinuxTerminal
+flatpak build-bundle repo Universal-Linux-Terminal-v1.0.1-x86_64.flatpak io.github.LionheartTim.UniversalLinuxTerminal
 ```
 
 Install the bundle locally:
 
 ```sh
-flatpak install --user ./Universal-Linux-Terminal-v1.0.0-x86_64.flatpak
+flatpak install --user ./Universal-Linux-Terminal-v1.0.1-x86_64.flatpak
 flatpak run io.github.LionheartTim.UniversalLinuxTerminal
 ```
 

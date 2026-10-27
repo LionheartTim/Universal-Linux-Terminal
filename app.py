@@ -31,7 +31,7 @@ from option_discovery import load_command_info, format_command_help
 from host_bridge import in_flatpak, run_host, host_shell_argv, HOST_ACCOUNT_SHELL
 from app_icon import configure_application_identity, apply_window_icon
 
-VERSION = '1.0.0'
+VERSION = '1.0.1'
 
 
 class CommandDescriptionView(Gtk.TextView):

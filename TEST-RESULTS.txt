@@ -1,13 +1,17 @@
-Universal Linux Terminal v1.0.0 — description wrapping adjustment
+Universal Linux Terminal v1.0.1 — paste/Stop and host Ctrl+C test candidate (2026-10-27)
 
-Python unittest discovery on the project source:
-  Ran 244 tests
-  Passed: 239
-  Skipped: 5 (GTK/VTE graphical tests unavailable in this environment)
+Python unittest discovery on this source tree:
+  Tests run: 253
+  Passed: 248
+  Skipped: 5 (GTK/VTE graphical-display tests unavailable in this environment)
   Failures: 0
 
-New regression coverage: multi-line lsb-release descriptions, help section
-boundaries, bounded long descriptions, scrolling GTK text-view code path.
+Regression coverage:
+  - Bracketed multiline paste unchanged and verified with actual Bash host PTY
+  - Direct host-PTY foreground SIGINT via SIGUSR1 to local relay, including -ISIG
+  - Native terminals continue sending Ctrl+C as input byte
+  - GUI Stop action remains a separate confirmed application exit
 
-Note: The Flatpak was not compiled here; rebuild and visually test the updated
-help pane on Bazzite. Host Bash/PTY and Flatpak permissions are unchanged.
+The Flatpak has NOT been built and visually exercised inside this container.
+Rebuild on Bazzite, verify Version 1.0.1, confirm Interrupt and Stop separately.
+Release v1.0.1 only after those real-world checks pass.

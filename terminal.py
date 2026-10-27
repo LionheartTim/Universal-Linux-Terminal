@@ -1,11 +1,13 @@
 """VTE PTY terminal: keyboard, selection and helper pastes share one shell."""
 import os
+import signal
 import time
 import shlex
 from pathlib import Path
 from gi.repository import Gtk, Gdk, GLib, Vte, Pango, Gio
 from i18n import tr as L
 from host_bridge import in_flatpak
+from paste_preferences import paste_confirmation_enabled, set_paste_confirmation_enabled
 
 class TerminalTab(Gtk.Box):
     def __init__(self, owner, argv, cwd, title, guided=False):
@@ -49,7 +51,10 @@ class TerminalTab(Gtk.Box):
             b = Gtk.Button(label=text); b.connect('clicked', callback)
             actions.add(b)
             return b
-        self.stop = button(L('Stop'), lambda *_: self.term.feed_child(b'\x03'))
+        # Stop ends the application; Ctrl+C is a separate, non-destructive action.
+        self.stop = button(L('Stop'), lambda *_: self.owner.closing())
+        self.stop.set_tooltip_text(L('Sluit de applicatie na bevestiging.'))
+        self.interrupt = button(L('Onderbreek opdracht (Ctrl+C)'), self.interrupt_command)
         button(L('Kopiëren'), lambda *_: self.term.copy_clipboard_format(Vte.Format.TEXT))
         button(L('Plakken…'), self.paste)
         button(L('Uitvoer opslaan'), self.save)
@@ -145,7 +150,7 @@ class TerminalTab(Gtk.Box):
             self.pack_start(self.label, False, False, 0)
             self.reorder_child(self.label, 0)
             self.label.show()
-        self.stop.set_sensitive(False); self.close.set_sensitive(True)
+        self.stop.set_sensitive(True); self.interrupt.set_sensitive(False); self.close.set_sensitive(True)
         self.reset_button.set_sensitive(False)
         self.owner.session_finished(self)
 
@@ -172,31 +177,106 @@ class TerminalTab(Gtk.Box):
         self.font_size = max(7, min(28, self.font_size+amount))
         self.term.set_font(Pango.FontDescription(f'Monospace {self.font_size}'))
 
+    def interrupt_command(self, *_):
+        """Interrupt foreground job, leaving the GUI and host shell open.
+
+        On Flatpak's Python host PTY bridge the real foreground process lives
+        on the *host* PTY, not VTE's relay PTY. Signal the local relay; it
+        forwards a dedicated request to the host to interrupt its foreground
+        process group. Keep normal Ctrl+C semantics for native shells and the
+        util-linux script fallback.
+        """
+        if self.done or self.pid is None:
+            return
+        python_relay = (in_flatpak() and '--relay' in self.argv
+                        and any(os.path.basename(arg) == 'host_pty_bridge.py'
+                                for arg in self.argv))
+        if python_relay:
+            try:
+                os.kill(self.pid, signal.SIGUSR1)
+            except (ProcessLookupError, PermissionError):
+                # The PTY might have exited during the click. Do not send a
+                # literal ^C to a potentially unrelated or already-dead job.
+                pass
+        else:
+            self.term.feed_child(b'\x03')
+        self.term.grab_focus()
+
+    def confirm_clipboard_paste(self, text):
+        """Ask once unless the user explicitly chose to suppress the warning.
+
+        Tick + Yes remembers the choice. Tick + No never disables future
+        warnings: declining a paste cannot silently weaken the safeguard.
+        The terminal's context menu lets the user re-enable this at any time.
+        """
+        if not paste_confirmation_enabled():
+            return True
+        message = L('Controleer de tekst. Bij Bash met bracketed paste worden alle regels eerst ingevoegd; druk daarna zelf op Enter. Zonder die ondersteuning kunnen nieuwe regels direct opdrachten uitvoeren.')
+        dialog = Gtk.MessageDialog(transient_for=self.owner, modal=True,
+                                   message_type=Gtk.MessageType.QUESTION,
+                                   buttons=Gtk.ButtonsType.YES_NO,
+                                   text=message + '\n\n' + text[:1500])
+        check = Gtk.CheckButton(label=L('Deze plakwaarschuwing niet meer tonen'))
+        check.set_tooltip_text(L('Je kunt de plakwaarschuwing opnieuw inschakelen via het rechtermuisknopmenu van de terminal.'))
+        check.set_margin_start(12)
+        check.set_margin_bottom(8)
+        dialog.get_content_area().pack_start(check, False, False, 0)
+        check.show()
+        try:
+            allowed = dialog.run() == Gtk.ResponseType.YES
+            remember = allowed and check.get_active()
+        finally:
+            dialog.destroy()
+        if remember:
+            try:
+                set_paste_confirmation_enabled(False)
+            except OSError as error:
+                self.owner.message(L('Kon de plakvoorkeur niet opslaan: ') + str(error))
+        return allowed
+
+    def set_paste_warning(self, enabled):
+        """Explicitly toggle the warning via the right-click context menu."""
+        try:
+            set_paste_confirmation_enabled(enabled)
+            return True
+        except OSError as error:
+            self.owner.message(L('Kon de plakvoorkeur niet opslaan: ') + str(error))
+            return False
+
     def paste(self, *_):
         if self.done: return
         def received(clipboard, text, data):
             if not text or self.done: return
-            if self.owner.confirm(L('Deze tekst gaat naar de actieve terminal. Nieuwe regels kunnen opdrachten uitvoeren.')+'\n\n'+text[:1500]):
+            if self.confirm_clipboard_paste(text):
                 clean = text.replace('\x1b[200~', '').replace('\x1b[201~', '')
-                self.insert_text(clean)
+                self.insert_text(clean, clipboard=True)
                 self.term.grab_focus()
         Gtk.Clipboard.get(Gdk.SELECTION_CLIPBOARD).request_text(received, None)
 
-    def insert_text(self, text):
-        """Paste through VTE (including bracketed paste when available).
+    def insert_text(self, text, clipboard=False):
+        """Insert into the real PTY without changing ordinary keyboard input.
 
-        Older VTE releases without paste_text still support raw UTF-8 input;
-        never turn helper commands into automatic execution.
+        Side-panel commands are inserted literally and never auto-executed.
+        Clipboard content is handed to VTE's paste API, which honors the
+        bracketed-paste state announced by the foreground application.
+        Bash/Readline in that mode accepts an entire multi-line paste as one
+        editable buffer until the user presses Enter. Raw CR injection would
+        instead execute each line during paste and can lose later lines.
+
+        For shells/programs that do not enable bracketed paste, normal
+        terminal paste semantics apply and newlines MAY execute immediately.
+        Default to a confirmation dialog unless the user opts out. The
+        right-click context menu can restore the warning at any time.
         """
         if self.done or not isinstance(text, str) or not text:
             return
-        # Use raw keyboard input rather than VTE paste_text. In a Flatpak
-        # host-PTY relay VTE and the remote shell track bracketed-paste state
-        # independently. paste_text can wrap the command in ESC[200~/201~,
-        # causing Bash to treat the escape code as part of the command name.
-        # Only one reviewed line should be sent from the sidebar; clipboard
-        # pastes separately require the existing multiline confirmation.
-        self.term.feed_child(text.encode('utf-8'))
+        if clipboard:
+            # Preserve logical newlines, including a trailing newline; VTE
+            # handles bracketed mode itself. Never append an extra Enter.
+            text = text.replace('\r\n', '\n').replace('\r', '\n')
+            self.term.paste_text(text)
+        else:
+            self.term.feed_child(text.encode('utf-8'))
 
     def save(self, *_):
         path = self.owner.choose(L('Terminaluitvoer opslaan (kan persoonlijke gegevens bevatten)'), save=True)
@@ -222,6 +302,16 @@ class TerminalTab(Gtk.Box):
         item(L('Kopiëren (Ctrl+Shift+C)'), lambda *_: widget.copy_clipboard_format(Vte.Format.TEXT),
              widget.get_has_selection())
         item(L('Plakken (Ctrl+Shift+V)'), self.paste, not self.done)
+        paste_warning_item = Gtk.CheckMenuItem(label=L('Plakwaarschuwing tonen'))
+        paste_warning_item.set_active(paste_confirmation_enabled())
+        def warning_toggled(entry):
+            requested = entry.get_active()
+            if not self.set_paste_warning(requested):
+                entry.handler_block(handler_id)
+                entry.set_active(not requested)
+                entry.handler_unblock(handler_id)
+        handler_id = paste_warning_item.connect('toggled', warning_toggled)
+        menu.append(paste_warning_item)
         item(L('Alles selecteren'), lambda *_: widget.select_all())
         menu.show_all()
         menu.popup_at_pointer(event)
