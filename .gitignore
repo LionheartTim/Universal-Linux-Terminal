@@ -1,0 +1,14 @@
+
+# Local and generated files
+.venv/
+__pycache__/
+*.pyc
+*.gguf
+*.flatpak
+.env*
+*.key
+*.pem
+local-repo*/
+.flatpak-builder/
+build/
+dist/

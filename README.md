@@ -1,4 +1,4 @@
-# Universal Linux Terminal — v1.0.1
+# Universal Linux Terminal — v1.0.1 (test candidate)
 
 **Version 1.0.1 (testing candidate)** · Linux · GTK 3 / VTE 2.91 · Flatpak · GNU GPL v3.0
 

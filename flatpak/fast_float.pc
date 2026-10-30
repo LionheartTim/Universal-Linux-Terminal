@@ -1,0 +1,7 @@
+prefix=/app
+includedir=${prefix}/include
+
+Name: fast_float
+Description: Header-only fast floating-point parser
+Version: 8.2.3
+Cflags: -I${includedir}

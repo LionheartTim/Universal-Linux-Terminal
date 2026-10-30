@@ -1,0 +1,11 @@
+[Desktop Entry]
+Type=Application
+Name=Universal Linux Terminal
+Comment=Host Linux terminal and guided command composer
+Exec=universal-linux-terminal
+Icon=io.github.LionheartTim.UniversalLinuxTerminal
+Terminal=false
+Categories=System;TerminalEmulator;Utility;
+Keywords=Linux;Terminal;Command;Shell;
+StartupNotify=true
+StartupWMClass=io.github.LionheartTim.UniversalLinuxTerminal

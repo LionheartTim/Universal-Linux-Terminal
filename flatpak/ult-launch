@@ -1,0 +1,11 @@
+#!/bin/sh
+# Installed by the Flatpak manifest, not a host launcher.
+set -eu
+cd /app/share/universal-linux-terminal
+# All GTK/PyGObject/VTE components are provided by the GNOME runtime and
+# the explicitly built VTE module; never depend on host Python packages.
+if ! python3 -c 'import gi; gi.require_version("Gtk", "3.0"); gi.require_version("Vte", "2.91"); from gi.repository import Gtk, Vte' 2>/dev/null; then
+  echo 'Universal Linux Terminal: GTK 3 / VTE 2.91 runtime components are missing.' >&2
+  exit 1
+fi
+exec python3 app.py

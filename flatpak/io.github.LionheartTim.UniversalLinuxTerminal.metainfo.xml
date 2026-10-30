@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Copyright 2026 LionheartTim. This metadata is licensed CC0-1.0. -->
+<component type="desktop-application">
+  <id>io.github.LionheartTim.UniversalLinuxTerminal</id>
+  <name>Universal Linux Terminal</name>
+  <summary>A host Linux terminal with beginner-friendly command guidance</summary>
+  <metadata_license>CC0-1.0</metadata_license>
+  <project_license>GPL-3.0-only</project_license>
+  <developer id="io.github.LionheartTim">
+    <name>LionheartTim</name>
+  </developer>
+  <description>
+    <p>Universal Linux Terminal combines a real, interactive Linux host terminal with a searchable command helper and context-aware command composition.</p>
+    <p>Discover installed commands, read available command descriptions and options, and prepare commands for manual review before running them.</p>
+    <ul>
+      <li>Interactive terminal powered by GTK 3 and VTE</li>
+      <li>Automatic Linux distribution and native package-manager detection</li>
+      <li>Categories for system utilities, Flatpak, networking, disks, files, and more</li>
+      <li>Searchable commands with option suggestions and command previews</li>
+      <li>English and Dutch user interface</li>
+    </ul>
+    <p>This is intentionally a host-access terminal rather than a confined terminal emulator. Its Flatpak permissions allow launching host commands and accessing host files. Review commands before executing them, and only install packages from sources you trust.</p>
+  </description>
+  <launchable type="desktop-id">io.github.LionheartTim.UniversalLinuxTerminal.desktop</launchable>
+  <url type="homepage">https://github.com/LionheartTim</url>
+  <releases>
+    <release version="1.0.1" date="2026-10-27">
+      <description>
+        <p>Fix multi-line clipboard paste using terminal-supported bracketed paste; provide a separate interrupt action and an application Stop action.</p>
+      </description>
+    </release>
+    <release version="1.0.0" date="2026-10-25">
+      <description>
+        <p>First stable release, tested on Bazzite with KDE Plasma, Xubuntu with Xfce, and openSUSE Leap with GNOME.</p>
+      </description>
+    </release>
+  </releases>
+  <content_rating type="oars-1.1" />
+</component>
